@@ -5,8 +5,8 @@
 
 struct HashStream {
 	typedef unsigned long long hashType;
-	hashType res = 1337;
 	private:
+	hashType res = 1337;
 	void addData(int data) {
 		srand(res);
 		srand(rand() + data);
@@ -43,16 +43,17 @@ class User {
 };
 
 class UserList {
-	std::list<User> users;
-
+	std::list<const User *> users;
+	// std::list<std::reference_wrapper<User>> users;
 	public:
-	void addToList(const User &newUser) {
+	void addToList(const User *newUser) {
 		users.push_back(newUser);
+		// users.push_back(User("hh", 2));
 	}
 
 	void printUserList() const {
 		for(const auto &user : users) {
-			user.printUserInfo();
+			user->printUserInfo();
 		}
 	}
 };
@@ -60,25 +61,29 @@ class UserList {
 class Transaction {
 	User &sender;
 	User &reciever;
-	int sum;
+	const int sum;
+	bool isValid;
+	// std::unique_ptr<int> k;
+
 	// HashStream::hashType hash;
 	public:
-	HashStream hs;
+	// HashStream hs;
 
-	Transaction(User &sender, User &reciever, int sum) : sender(sender), reciever(reciever), sum(sum) {
-		HashStream hst;
-		setHash(hs);
-		transfer();
+	Transaction(User &sender, User &reciever, const int sum) : sender(sender), reciever(reciever), sum(sum) {
+		// HashStream hst;
+		// setHash(hs);
+		// transfer();
+		if(sender.credit < sum) {
+			isValid = false;
+		} else {
+			isValid = true;
+		}
 	}
 
 	void transfer() {
 		sender.credit -= sum;
 		reciever.credit += sum;
 	}
-
-	// void setHash(Transaction &prev) {
-	// 	this->hash = ((prev.getHash() << 5) * 101 + 10101) % 12345;
-	// };
 
 	void setHash(HashStream &hs) {
 		hs << sender.credit;
@@ -90,15 +95,18 @@ class Transaction {
 			hs << c;
 		}
 		hs << sum;
-		// hs >> hash;
+		hs << isValid;
 	}
 
 
 	void printTransaction() const {
-		std::cout << "hash: " << hs << std::endl;
-		std::cout << "sent: " << sum << std::endl;
+		// std::cout << "hash: " << hs << std::endl;
 		sender.printUserInfo();
 		reciever.printUserInfo();
+		std::cout << "sent: " << sum << std::endl;
+		std::cout << std::boolalpha;
+		std::cout << "valid: " << isValid << std::endl;
+		std::cout << std::noboolalpha;
 		std::cout << std::endl;
 	}
 };
@@ -114,21 +122,21 @@ class TransactionList {
 		// 	// trans.setHash(transactions.back());
 		// }
 		// hs.addData(trans.getHash());
-		trans.setHash(trans.hs);
-		hs << trans.hs.res;
-		
+		// trans.setHash(trans.hs);
+		// hs << trans.hs.res;
+		trans.setHash(hs);
 		trans.transfer();
 		transactions.push_back(trans);
 	}
 
 
-	void printTransactionList() {
+	void printTransactionList() const {
 		for(const auto &transaction : transactions) {
 			transaction.printTransaction();
 		}
 	}
 
-	void printHash() {
+	void printHash() const {
 		std::cout << "hash: " << hs << std::endl;
 	}
 };
@@ -152,33 +160,31 @@ int main() {
 	User b("Henrik", 1000);
 	User c("hehe", 200);
 
-	// UserList ulist;
-	// ulist.addToList(a);
-	// ulist.addToList(b);
-	// ulist.addToList(c);
+	UserList ulist;
+	ulist.addToList(&a);
+	ulist.addToList(&b);
+	ulist.addToList(&c);
 
-	// ulist.printUserList();
+	ulist.printUserList();
 
-	// std::cout << std::endl;
-	// std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
 
 
 	// return 0;
-	User aa("Matilda", 400);
-	User bb("Henrik", 1000);
-	Transaction t4(aa, bb, 200);
-	t4.printTransaction();
+	// User aa("Matilda", 400);
+	// User bb("Henrik", 1000);
+	// Transaction t4(aa, bb, 200);
+	// t4.printTransaction();
 
-	User aaa("Matilda", 400);
-	User bbb("Henrik", 1000);
-	Transaction t5(aaa, bbb, 200);
-	t5.printTransaction();
+	// User aaa("Matilda", 400);
+	// User bbb("Henrik", 1000);
+	// Transaction t5(aaa, bbb, 2001);
+	// t5.printTransaction();
 
 	Transaction t1(a, b, 200);
 	Transaction t2(b, c, 30);
-	Transaction t3(c, a, 10);
-
-
+	Transaction t3(c, a, 110);
 
 
 
